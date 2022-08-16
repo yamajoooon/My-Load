@@ -3,8 +3,10 @@ import type { AppProps } from 'next/app';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { CacheProvider, EmotionCache } from '@emotion/react';
-import { theme } from '../src/theme';
-import createEmotionCache from '../src/createEmotionCache';
+import { theme } from '../src/common/theme';
+import createEmotionCache from '../src/common/createEmotionCache';
+import '../utils/firebase/init';
+import { Header } from '../src/common/components/header';
 
 const clientSideEmotionCache = createEmotionCache();
 interface MyAppProps extends AppProps {
@@ -21,6 +23,7 @@ function MyApp(props: MyAppProps) {
       </Head>
       <ThemeProvider theme={theme}>
         <CssBaseline />
+        <Header />
         <Component {...pageProps} />
       </ThemeProvider>
     </CacheProvider>
