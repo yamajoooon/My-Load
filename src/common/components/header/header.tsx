@@ -9,7 +9,7 @@ import Router from 'next/router';
 import { getAuth, signOut } from 'firebase/auth';
 
 export const Header: FunctionComponent = () => {
-  const { isSignedIn } = useAuthState();
+  const { isSignedIn, userName } = useAuthState();
 
   const handleSignOut = useCallback(() => {
     signOut(getAuth());
@@ -24,7 +24,8 @@ export const Header: FunctionComponent = () => {
             <Typography variant='h6' component='div' sx={{ flexGrow: 1 }}>
               MyLoad
             </Typography>
-            <Typography>
+            <Typography sx={{ display: 'flex', alignItems: 'center' }}>
+              {userName && <Box sx={{ flexGrow: 1 }}>{userName}</Box>}
               {isSignedIn ? (
                 <Button color='inherit' onClick={handleSignOut}>
                   Logout

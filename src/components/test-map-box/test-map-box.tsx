@@ -12,8 +12,8 @@ import CardActions from '@mui/material/CardActions';
 import CardContent from '@mui/material/CardContent';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
-import { getApp, FirebaseApp } from 'firebase/app';
 import { CurrentCoordinate } from './test-map-box.style';
+import { useBooks } from './hooks/useBooks';
 
 const mapStyle: mapboxgl.Style = {
   version: 8,
@@ -43,8 +43,10 @@ export const TestMapBox: FunctionComponent = () => {
   const [currentLng, setCurrentLng] = useState<number>(135.7818);
   const [currentLat, setCurrentLat] = useState<number>(35.0);
   const [currentZoom, setCurrentZoom] = useState<number>(12);
+
   const mapContainer = useRef<HTMLDivElement | null>(null);
-  const app: FirebaseApp = getApp();
+
+  const { isLoading, books } = useBooks();
 
   const mapboxAccessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
@@ -210,16 +212,20 @@ export const TestMapBox: FunctionComponent = () => {
         });
       });
     }
-  }, [mapInstance]);
+  }, [mapInstance, start, isLoading]);
 
   return (
     <div>
       <Card sx={{ minWidth: 275 }}>
         <CardContent>
           <ul>
-            <li>name = {app.name}</li>
-            <li>appId = {app.options.appId}</li>
-            <li>apiKey = {app.options.apiKey}</li>
+            {books.map((book) => {
+              return (
+                <li key={book.id}>
+                  {book.title} / {book.auther}
+                </li>
+              );
+            })}
           </ul>
           <Typography sx={{ fontSize: 14 }} color='text.secondary' gutterBottom>
             Word of the Day
