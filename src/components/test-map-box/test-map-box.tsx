@@ -46,7 +46,7 @@ export const TestMapBox: FunctionComponent = () => {
   const mapContainer = useRef<HTMLDivElement | null>(null);
 
   const { isLoading, books } = useBooks();
-  const { isLoadingPost, post, loadQuery, markerGeo } = usePost();
+  const { isLoadingPost, post, loadQuery, markerGeo, start } = usePost();
 
   const mapboxAccessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
@@ -66,8 +66,6 @@ export const TestMapBox: FunctionComponent = () => {
     }
   }, [post, loadQuery]);
 
-  console.log(markerGeo);
-
   useEffect(() => {
     if (!mapContainer.current) return;
 
@@ -79,50 +77,6 @@ export const TestMapBox: FunctionComponent = () => {
       });
     }
   }, [mapInstance]);
-
-  const markers = [
-    {
-      city: 'Kenninji',
-      country: 'Japan',
-      latCoord: 35.00028883396185,
-      longCoord: 135.77350069157626,
-      color: 'red',
-    },
-    {
-      city: 'NaZenji',
-      country: 'Japan',
-      latCoord: 35.0107325368728,
-      longCoord: 135.7940018972439,
-      color: 'pink',
-    },
-    {
-      city: 'Shimogamojinja',
-      country: 'Japan',
-      latCoord: 35.0397503053051,
-      longCoord: 135.7691401418707,
-      color: 'blue',
-    },
-  ];
-
-  const geojson = {
-    type: 'Feature',
-    features: markers.map((marker) => ({
-      geometry: {
-        type: 'Point',
-        coordinates: {
-          lat: marker.latCoord,
-          lng: marker.longCoord,
-        },
-      },
-      properties: {
-        city: marker.city,
-        country: marker.country,
-        color: marker.color,
-      },
-    })),
-  };
-
-  const start = [markers[0].longCoord, markers[0].latCoord];
 
   const getRoute = useCallback(async () => {
     const query = await fetch(
@@ -163,7 +117,7 @@ export const TestMapBox: FunctionComponent = () => {
         },
       });
     }
-  }, [mapboxAccessToken, start]);
+  }, [mapboxAccessToken, loadQuery, mapInstance]);
 
   useEffect(() => {
     if (mapInstance) {
