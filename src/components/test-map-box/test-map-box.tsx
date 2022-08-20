@@ -13,7 +13,7 @@ import CardContent from '@mui/material/CardContent';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import { CurrentCoordinate } from './test-map-box.style';
-import { useBooks } from './hooks/useBooks';
+import { useBooks, usePost } from './hooks';
 
 const mapStyle: mapboxgl.Style = {
   version: 8,
@@ -40,30 +40,33 @@ const mapStyle: mapboxgl.Style = {
 
 export const TestMapBox: FunctionComponent = () => {
   const [mapInstance, setMapInstance] = useState<mapboxgl.Map>();
-  const [currentLng, setCurrentLng] = useState<number>(135.7818);
-  const [currentLat, setCurrentLat] = useState<number>(35.0);
-  const [currentZoom, setCurrentZoom] = useState<number>(12);
-
+  const [currentLng, setCurrentLng] = useState<number>(134.7818);
+  const [currentLat, setCurrentLat] = useState<number>(36.0);
+  const [currentZoom, setCurrentZoom] = useState<number>(11);
   const mapContainer = useRef<HTMLDivElement | null>(null);
 
   const { isLoading, books } = useBooks();
+  const { isLoadingPost, post, loadQuery, markerGeo } = usePost();
 
   const mapboxAccessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
   useEffect(() => {
-    // mapContainer.currentはnullになり得るので型ガード（ていねい）
     if (!mapContainer.current) return;
 
-    const map = new mapboxgl.Map({
-      container: mapContainer.current, // ていねいな型ガードのおかげで必ずHTMLDivElementとして扱える、current!でも可
-      accessToken: mapboxAccessToken,
-      style: mapStyle,
-      center: [currentLng, currentLat],
-      zoom: currentZoom,
-    });
-    // mapboxgl.Mapのインスタンスへの参照を保存
-    setMapInstance(map);
-  }, []);
+    if (post && loadQuery) {
+      const map = new mapboxgl.Map({
+        container: mapContainer.current,
+        accessToken: mapboxAccessToken,
+        style: mapStyle,
+        center: [post.centerLng, post.centerLat],
+        zoom: post.basicZoom,
+      });
+
+      setMapInstance(map);
+    }
+  }, [post, loadQuery]);
+
+  console.log(markerGeo);
 
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -123,7 +126,7 @@ export const TestMapBox: FunctionComponent = () => {
 
   const getRoute = useCallback(async () => {
     const query = await fetch(
-      `https://api.mapbox.com/directions/v5/mapbox/cycling/${markers[0].longCoord},${markers[0].latCoord};${markers[1].longCoord},${markers[1].latCoord};${markers[2].longCoord},${markers[2].latCoord}?steps=true&geometries=geojson&access_token=${mapboxAccessToken}`,
+      `https://api.mapbox.com/directions/v5/mapbox/cycling/${loadQuery}?steps=true&geometries=geojson&access_token=${mapboxAccessToken}`,
       { method: 'GET' }
     );
     const json = await query.json();
@@ -165,7 +168,7 @@ export const TestMapBox: FunctionComponent = () => {
   useEffect(() => {
     if (mapInstance) {
       mapInstance.on('load', () => {
-        geojson.features.forEach((marker) => {
+        markerGeo.features.forEach((marker) => {
           // create a DOM element for the marker
           const markerIcon = document.createElement('div');
           markerIcon.className = 'location-marker';
