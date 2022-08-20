@@ -12,8 +12,8 @@ import CardActions from '@mui/material/CardActions';
 import CardContent from '@mui/material/CardContent';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
-import { getApp, FirebaseApp } from 'firebase/app';
 import { CurrentCoordinate } from './test-map-box.style';
+import { useBooks, usePost } from './hooks';
 
 const mapStyle: mapboxgl.Style = {
   version: 8,
@@ -40,28 +40,31 @@ const mapStyle: mapboxgl.Style = {
 
 export const TestMapBox: FunctionComponent = () => {
   const [mapInstance, setMapInstance] = useState<mapboxgl.Map>();
-  const [currentLng, setCurrentLng] = useState<number>(135.7818);
-  const [currentLat, setCurrentLat] = useState<number>(35.0);
-  const [currentZoom, setCurrentZoom] = useState<number>(12);
+  const [currentLng, setCurrentLng] = useState<number>(134.7818);
+  const [currentLat, setCurrentLat] = useState<number>(36.0);
+  const [currentZoom, setCurrentZoom] = useState<number>(11);
   const mapContainer = useRef<HTMLDivElement | null>(null);
-  const app: FirebaseApp = getApp();
+
+  const { isLoading, books } = useBooks();
+  const { isLoadingPost, post, loadQuery, markerGeo, start } = usePost();
 
   const mapboxAccessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
   useEffect(() => {
-    // mapContainer.currentはnullになり得るので型ガード（ていねい）
     if (!mapContainer.current) return;
 
-    const map = new mapboxgl.Map({
-      container: mapContainer.current, // ていねいな型ガードのおかげで必ずHTMLDivElementとして扱える、current!でも可
-      accessToken: mapboxAccessToken,
-      style: mapStyle,
-      center: [currentLng, currentLat],
-      zoom: currentZoom,
-    });
-    // mapboxgl.Mapのインスタンスへの参照を保存
-    setMapInstance(map);
-  }, []);
+    if (post && loadQuery) {
+      const map = new mapboxgl.Map({
+        container: mapContainer.current,
+        accessToken: mapboxAccessToken,
+        style: mapStyle,
+        center: [post.centerLng, post.centerLat],
+        zoom: post.basicZoom,
+      });
+
+      setMapInstance(map);
+    }
+  }, [post, loadQuery]);
 
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -75,53 +78,9 @@ export const TestMapBox: FunctionComponent = () => {
     }
   }, [mapInstance]);
 
-  const markers = [
-    {
-      city: 'Kenninji',
-      country: 'Japan',
-      latCoord: 35.00028883396185,
-      longCoord: 135.77350069157626,
-      color: 'red',
-    },
-    {
-      city: 'NaZenji',
-      country: 'Japan',
-      latCoord: 35.0107325368728,
-      longCoord: 135.7940018972439,
-      color: 'pink',
-    },
-    {
-      city: 'Shimogamojinja',
-      country: 'Japan',
-      latCoord: 35.0397503053051,
-      longCoord: 135.7691401418707,
-      color: 'blue',
-    },
-  ];
-
-  const geojson = {
-    type: 'Feature',
-    features: markers.map((marker) => ({
-      geometry: {
-        type: 'Point',
-        coordinates: {
-          lat: marker.latCoord,
-          lng: marker.longCoord,
-        },
-      },
-      properties: {
-        city: marker.city,
-        country: marker.country,
-        color: marker.color,
-      },
-    })),
-  };
-
-  const start = [markers[0].longCoord, markers[0].latCoord];
-
   const getRoute = useCallback(async () => {
     const query = await fetch(
-      `https://api.mapbox.com/directions/v5/mapbox/cycling/${markers[0].longCoord},${markers[0].latCoord};${markers[1].longCoord},${markers[1].latCoord};${markers[2].longCoord},${markers[2].latCoord}?steps=true&geometries=geojson&access_token=${mapboxAccessToken}`,
+      `https://api.mapbox.com/directions/v5/mapbox/cycling/${loadQuery}?steps=true&geometries=geojson&access_token=${mapboxAccessToken}`,
       { method: 'GET' }
     );
     const json = await query.json();
@@ -158,12 +117,12 @@ export const TestMapBox: FunctionComponent = () => {
         },
       });
     }
-  }, [mapboxAccessToken, start]);
+  }, [mapboxAccessToken, loadQuery, mapInstance]);
 
   useEffect(() => {
     if (mapInstance) {
       mapInstance.on('load', () => {
-        geojson.features.forEach((marker) => {
+        markerGeo.features.forEach((marker) => {
           // create a DOM element for the marker
           const markerIcon = document.createElement('div');
           markerIcon.className = 'location-marker';
@@ -210,16 +169,20 @@ export const TestMapBox: FunctionComponent = () => {
         });
       });
     }
-  }, [mapInstance]);
+  }, [mapInstance, start, isLoading]);
 
   return (
     <div>
       <Card sx={{ minWidth: 275 }}>
         <CardContent>
           <ul>
-            <li>name = {app.name}</li>
-            <li>appId = {app.options.appId}</li>
-            <li>apiKey = {app.options.apiKey}</li>
+            {books.map((book) => {
+              return (
+                <li key={book.id}>
+                  {book.title} / {book.auther}
+                </li>
+              );
+            })}
           </ul>
           <Typography sx={{ fontSize: 14 }} color='text.secondary' gutterBottom>
             Word of the Day
