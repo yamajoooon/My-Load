@@ -1,4 +1,10 @@
-import { FunctionComponent, useEffect, useRef, useState } from 'react';
+import {
+  FunctionComponent,
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+} from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import Card from '@mui/material/Card';
@@ -11,6 +17,7 @@ import { CurrentCoordinate } from './test-map-box.style';
 
 const mapStyle: mapboxgl.Style = {
   version: 8,
+  sprite: 'mapbox://styles/arakiken/cl6zste8x005n14nxa4qaarc7',
   sources: {
     OSM: {
       type: 'raster',
@@ -26,18 +33,20 @@ const mapStyle: mapboxgl.Style = {
       type: 'raster',
       source: 'OSM',
       minzoom: 0,
-      maxzoom: 18,
+      maxzoom: 19,
     },
   ],
 };
 
 export const TestMapBox: FunctionComponent = () => {
   const [mapInstance, setMapInstance] = useState<mapboxgl.Map>();
-  const [currentLng, setCurrentLng] = useState<number>(142.0);
-  const [currentLat, setCurrentLat] = useState<number>(40.0);
-  const [currentZoom, setCurrentZoom] = useState<number>(4);
+  const [currentLng, setCurrentLng] = useState<number>(135.7818);
+  const [currentLat, setCurrentLat] = useState<number>(35.0);
+  const [currentZoom, setCurrentZoom] = useState<number>(12);
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const app: FirebaseApp = getApp();
+
+  const mapboxAccessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
   useEffect(() => {
     // mapContainer.currentはnullになり得るので型ガード（ていねい）
@@ -45,7 +54,7 @@ export const TestMapBox: FunctionComponent = () => {
 
     const map = new mapboxgl.Map({
       container: mapContainer.current, // ていねいな型ガードのおかげで必ずHTMLDivElementとして扱える、current!でも可
-      accessToken: process.env.NEXT_PUBLIC_MAPBOX_TOKEN,
+      accessToken: mapboxAccessToken,
       style: mapStyle,
       center: [currentLng, currentLat],
       zoom: currentZoom,
@@ -101,10 +110,55 @@ export const TestMapBox: FunctionComponent = () => {
         },
       },
       properties: {
+        city: marker.city,
+        country: marker.country,
         color: marker.color,
       },
     })),
   };
+
+  const start = [markers[0].longCoord, markers[0].latCoord];
+
+  const getRoute = useCallback(async () => {
+    const query = await fetch(
+      `https://api.mapbox.com/directions/v5/mapbox/cycling/${markers[0].longCoord},${markers[0].latCoord};${markers[1].longCoord},${markers[1].latCoord};${markers[2].longCoord},${markers[2].latCoord}?steps=true&geometries=geojson&access_token=${mapboxAccessToken}`,
+      { method: 'GET' }
+    );
+    const json = await query.json();
+    const data = json.routes[0];
+    const route = data.geometry.coordinates;
+    const geojson = {
+      type: 'Feature',
+      properties: {},
+      geometry: {
+        type: 'LineString',
+        coordinates: route,
+      },
+    };
+    if (mapInstance.getSource('route')) {
+      // @ts-ignore
+      mapInstance.getSource('route').setData(geojson);
+    } else {
+      mapInstance.addLayer({
+        id: 'route',
+        type: 'line',
+        source: {
+          type: 'geojson',
+          // @ts-ignore
+          data: geojson,
+        },
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round',
+        },
+        paint: {
+          'line-color': '#3887be',
+          'line-width': 5,
+          'line-opacity': 0.75,
+        },
+      });
+    }
+  }, [mapboxAccessToken, start]);
 
   useEffect(() => {
     if (mapInstance) {
@@ -119,7 +173,40 @@ export const TestMapBox: FunctionComponent = () => {
           markerIcon.style.cursor = 'pointer';
           new mapboxgl.Marker(markerIcon)
             .setLngLat(marker.geometry.coordinates)
+            .setPopup(
+              // add pop out to map
+              new mapboxgl.Popup({ offset: 25 }).setHTML(
+                `<p>${marker.properties.city}, ${marker.properties.country}</p>`
+              )
+            )
             .addTo(mapInstance);
+        });
+
+        getRoute();
+
+        mapInstance.addLayer({
+          id: 'point',
+          type: 'circle',
+          source: {
+            type: 'geojson',
+            data: {
+              type: 'FeatureCollection',
+              features: [
+                {
+                  type: 'Feature',
+                  properties: {},
+                  geometry: {
+                    type: 'Point',
+                    coordinates: start,
+                  },
+                },
+              ],
+            },
+          },
+          paint: {
+            'circle-radius': 10,
+            'circle-color': '#3887be',
+          },
         });
       });
     }
