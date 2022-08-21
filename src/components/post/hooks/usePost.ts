@@ -54,7 +54,7 @@ export function usePost(): UsePostOutput {
 
   useEffect(() => {
     void (async () => {
-      const post = await getPost(userId, 'MSaEpGvXfUY5VgC9ehd2');
+      const post = await getPost(userId, `${postId}`);
 
       let load = '';
       const features = new Array();
@@ -86,6 +86,6 @@ export function usePost(): UsePostOutput {
       const start = [post?.markers[0].longCoord, post?.markers[0].latCoord];
       setOutput({ isLoadingPost: false, post, loadQuery, markerGeo, start });
     })();
-  }, [userId]);
+  }, [userId, postId]);
   return output;
 }

@@ -21,12 +21,16 @@ export type Post = {
   centerLat: number;
   basicZoom: number;
   markers: Marker[];
+  travelDay: any;
 };
 
-export async function getPost(uid: string | undefined): Promise<Post> {
+export async function getPost(
+  uid: string | undefined,
+  postId: string | undefined
+): Promise<Post> {
   const db = getFirestore();
 
-  const docRef = doc(db, `/users/${uid}/posts`, '5Fwd6fQXpIV6hW4mS9FQ');
+  const docRef = doc(db, `/users/${uid}/posts`, postId);
 
   const getPostSnap = await getDoc(docRef);
 
