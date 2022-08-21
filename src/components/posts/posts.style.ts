@@ -7,4 +7,11 @@ const Container = styled('div')(({ theme }) => ({
   marginTop: theme.spacing(12),
 }));
 
-export { Container };
+const CardContainer = styled('div')(({ theme }) => ({
+  ':hover': {
+    cursor: 'pointer',
+    backgroundColor: '#fafad2',
+  },
+}));
+
+export { Container, CardContainer };
