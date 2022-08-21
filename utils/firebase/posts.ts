@@ -21,6 +21,7 @@ export type Post = {
   centerLat: number;
   basicZoom: number;
   markers: Marker[];
+  travelDay: any;
 };
 
 export async function getPost(

@@ -36,6 +36,7 @@ const DEFAULT_OUTPUT: UsePostOutput = {
     centerLat: 38.6769,
     basicZoom: 5,
     markers: [],
+    travelDay: null,
   },
   loadQuery: '',
   markerGeo: {

@@ -70,13 +70,8 @@ const mapStyle: mapboxgl.Style = {
 export const Post: FunctionComponent = () => {
   const [expanded, setExpanded] = useState(false);
   const [mapInstance, setMapInstance] = useState<mapboxgl.Map>();
-  const [currentLng, setCurrentLng] = useState<number>(134.7818);
-  const [currentLat, setCurrentLat] = useState<number>(36.0);
-  const [currentZoom, setCurrentZoom] = useState<number>(11);
   const mapContainer = useRef<HTMLDivElement | null>(null);
-
-  const router = useRouter();
-  const { postId } = router.query;
+  const [travelDay, setTravelDay] = useState('');
 
   const { userName } = useAuthState();
   const { isLoadingPost, post, loadQuery, markerGeo, start } = usePost();
@@ -99,21 +94,13 @@ export const Post: FunctionComponent = () => {
         zoom: post.basicZoom,
       });
 
+      const day = new Date(post?.travelDay?.seconds * 1000);
+
+      setTravelDay(day.toString().substring(0, 15));
+
       setMapInstance(map);
     }
   }, [post, loadQuery]);
-
-  useEffect(() => {
-    if (!mapContainer.current) return;
-
-    if (mapInstance) {
-      mapInstance.on('move', () => {
-        setCurrentLng(Number(mapInstance.getCenter().lng.toFixed(4)));
-        setCurrentLat(Number(mapInstance.getCenter().lat.toFixed(4)));
-        setCurrentZoom(Number(mapInstance.getZoom().toFixed(2)));
-      });
-    }
-  }, [mapInstance]);
 
   const getRoute = useCallback(async () => {
     const query = await fetch(
@@ -222,8 +209,8 @@ export const Post: FunctionComponent = () => {
               <MoreVertIcon />
             </IconButton>
           }
-          title={postId}
-          subheader='September 14, 2016'
+          title={post?.title}
+          subheader={travelDay}
         />
         <div style={{ height: 800 }} ref={mapContainer} />
         <CardContent>

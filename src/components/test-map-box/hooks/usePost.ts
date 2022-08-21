@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getPost, Post } from '../../../../utils/firebase/posts';
 import { useAuthState } from '../../../common/components/header/hooks/useAuthState';
+import { useRouter } from 'next/router';
 
 export type UsePostOutput = {
   isLoadingPost: boolean;
@@ -35,6 +36,7 @@ const DEFAULT_OUTPUT: UsePostOutput = {
     centerLat: 38.6769,
     basicZoom: 5,
     markers: [],
+    travelDay: null,
   },
   loadQuery: '',
   markerGeo: {
@@ -47,10 +49,12 @@ const DEFAULT_OUTPUT: UsePostOutput = {
 export function usePost(): UsePostOutput {
   const [output, setOutput] = useState(DEFAULT_OUTPUT);
   const { userId } = useAuthState();
+  const router = useRouter();
+  const { postId } = router.query;
 
   useEffect(() => {
     void (async () => {
-      const post = await getPost(userId);
+      const post = await getPost(userId, `${postId}`);
 
       let load = '';
       const features = new Array();
