@@ -5,12 +5,10 @@ import {
   useEffect,
   useRef,
 } from 'react';
-import { useRouter } from 'next/router';
 import { Container } from './post.style';
 import {
   Card,
   CardHeader,
-  CardMedia,
   CardContent,
   CardActions,
   Collapse,
@@ -104,7 +102,7 @@ export const Post: FunctionComponent = () => {
 
   const getRoute = useCallback(async () => {
     const query = await fetch(
-      `https://api.mapbox.com/directions/v5/mapbox/cycling/${loadQuery}?steps=true&geometries=geojson&access_token=${mapboxAccessToken}`,
+      `https://api.mapbox.com/directions/v5/mapbox/driving/${loadQuery}?steps=true&geometries=geojson&access_token=${mapboxAccessToken}`,
       { method: 'GET' }
     );
     const json = await query.json();

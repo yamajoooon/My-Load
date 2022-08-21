@@ -54,7 +54,7 @@ export function usePost(): UsePostOutput {
 
   useEffect(() => {
     void (async () => {
-      const post = await getPost(userId, `${postId}`);
+      const post = await getPost(userId, 'MSaEpGvXfUY5VgC9ehd2');
 
       let load = '';
       const features = new Array();
