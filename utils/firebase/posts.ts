@@ -38,3 +38,16 @@ export async function getPost(
 
   return post;
 }
+
+export async function getPosts(uid: string | undefined): Promise<Post[]> {
+  const posts = new Array<Post>();
+  const db = getFirestore();
+  const postsSnapshot = await getDocs(collection(db, `/users/${uid}/posts`));
+
+  postsSnapshot.forEach((doc) => {
+    const post = doc.data() as Post;
+    posts.push({ ...post, id: doc.id });
+  });
+
+  return posts;
+}
