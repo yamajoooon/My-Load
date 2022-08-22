@@ -4,6 +4,7 @@ import {
   getFirestore,
   getDoc,
   doc,
+  addDoc,
 } from 'firebase/firestore';
 
 type Marker = {
@@ -50,4 +51,20 @@ export async function getPosts(uid: string | undefined): Promise<Post[]> {
   });
 
   return posts;
+}
+
+export async function addPost(
+  uid: string | undefined,
+  post: Post
+): Promise<void> {
+  const db = getFirestore();
+
+  const docRef = collection(db, `/users/${uid}/posts`);
+  await addDoc(docRef, post)
+    .then((docRef) => {
+      console.log('Document has been added successfully:', docRef.id);
+    })
+    .catch((error) => {
+      console.log(error);
+    });
 }
