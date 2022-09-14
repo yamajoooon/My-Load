@@ -1,4 +1,5 @@
-import { collection, getDocs, getFirestore } from 'firebase/firestore';
+import { Book } from '@mui/icons-material';
+import { collection, getDocs, getFirestore, addDoc } from 'firebase/firestore';
 
 export type Book = {
   id: string;
@@ -18,4 +19,16 @@ export async function getBooks(uid: string | undefined): Promise<Book[]> {
   });
 
   return books;
+}
+
+export async function addBook(
+  book: Book,
+  uid: string | undefined
+): Promise<void> {
+  const db = getFirestore();
+
+  const docRef = collection(db, `/users/${uid}/books`);
+  const documentRef = await addDoc(docRef, book);
+
+  console.log('Document written with ID: ', documentRef.id);
 }

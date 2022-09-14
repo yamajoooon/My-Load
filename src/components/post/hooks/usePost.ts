@@ -37,6 +37,7 @@ const DEFAULT_OUTPUT: UsePostOutput = {
     basicZoom: 5,
     markers: [],
     travelDay: null,
+    lineColor: '',
   },
   loadQuery: '',
   markerGeo: {
