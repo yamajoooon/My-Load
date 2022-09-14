@@ -23,6 +23,7 @@ export type Post = {
   basicZoom: number;
   markers: Marker[];
   travelDay: any;
+  lineColor: string;
 };
 
 export async function getPost(

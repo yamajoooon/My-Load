@@ -42,29 +42,6 @@ const ExpandMore = styled((props: ExpandMoreProps) => {
   }),
 }));
 
-const mapStyle: mapboxgl.Style = {
-  version: 8,
-  sprite: 'mapbox://styles/arakiken/cl6zste8x005n14nxa4qaarc7',
-  sources: {
-    OSM: {
-      type: 'raster',
-      tiles: ['http://tile.openstreetmap.org/{z}/{x}/{y}.png'],
-      tileSize: 256,
-      attribution:
-        '<a href="http://osm.org/copyright">© OpenStreetMap contributors</a>',
-    },
-  },
-  layers: [
-    {
-      id: 'OSM',
-      type: 'raster',
-      source: 'OSM',
-      minzoom: 0,
-      maxzoom: 19,
-    },
-  ],
-};
-
 export const Post: FunctionComponent = () => {
   const [expanded, setExpanded] = useState(false);
   const [mapInstance, setMapInstance] = useState<mapboxgl.Map>();
@@ -87,7 +64,7 @@ export const Post: FunctionComponent = () => {
       const map = new mapboxgl.Map({
         container: mapContainer.current,
         accessToken: mapboxAccessToken,
-        style: mapStyle,
+        style: `mapbox://styles/arakiken/${post.lineColor}`,
         center: [post.centerLng, post.centerLat],
         zoom: post.basicZoom,
       });
@@ -133,7 +110,7 @@ export const Post: FunctionComponent = () => {
           'line-cap': 'round',
         },
         paint: {
-          'line-color': '#3887be',
+          'line-color': 'orange',
           'line-width': 5,
           'line-opacity': 0.75,
         },
